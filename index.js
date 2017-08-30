@@ -1,9 +1,11 @@
 let express = require('express');
 let session = require('express-session');
+let bodyParser = require('body-parser');
 
 var app = express();
 
 //Middleware
+app.use(bodyParser.json());
 app.use(session({
     secret: 'ldkajflkejfakjelkfj;lafke',
     resave: false,
@@ -11,15 +13,33 @@ app.use(session({
 }))
 app.use( function(req, res, next) {
     const { session } = req;  // const session = req.session
-    // console.log(session)
+    console.log(session)
     if ( !session.user ) {
-        session.user = { username: 'unisaurs', favorites: ['Jelly Shoes']};
+        session.user = { username: '', favorites: []};
     } 
     next();
     }
 )
 
 var port = 4000
+
+var users = [{username: 'watermelon', password: '123'}]
+
+//Login 
+app.post( '/api/login', ( req, res, next ) => {
+    const { session } = req;
+    const { username, password } = req.body;
+
+    const user = users.find( user => user.username === username && user.password === password );
+
+    if ( user ) {
+        session.user.username = user.username;
+        res.status(200).send(session.user);
+    } else {
+        res.status(500).send('Unauthorized.');
+    }
+})
+
 
 //Get Favorites 
 app.get( '/api/getFavorites', (req, res, next) => {
